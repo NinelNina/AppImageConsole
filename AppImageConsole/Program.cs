@@ -1,9 +1,6 @@
 ﻿using System;
 using static System.Console;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ImageMagick;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -37,8 +34,7 @@ namespace AppImageConsole
                 
                 return;
             }
-            var imageInput = new Bitmap(Image.FromFile(path));
-            var imageOutput = new Bitmap(imageInput.Width, imageInput.Height);
+         
 
             if (!(path.EndsWith(".jpg") | path.EndsWith(".png")  | path.EndsWith(".bmp")))
             {
@@ -48,24 +44,10 @@ namespace AppImageConsole
                 return;
             }
 
-            for (int j = 0; j < imageInput.Height; j++)
-            {
-                for (int i = 0; i < imageInput.Width; i++)
-                {
-                    UInt32 pixel = (UInt32)(imageInput.GetPixel(i, j).ToArgb());
+            var imageInput = new MagickImage(path);
 
-                    float R = (float)((pixel & 0x00FF0000) >> 16);
-                    float G = (float)((pixel & 0x0000FF00) >> 8);
-                    float B = (float)(pixel & 0x000000FF);
-
-                    R = G = B = (R + G + B) / 3.0f;
-
-                    UInt32 newPixel = 0xFF000000 | ((UInt32)R << 16) | ((UInt32)G << 8) | ((UInt32)B);
-
-                    imageOutput.SetPixel(i, j, Color.FromArgb((int)newPixel));
-                }
-            }
-
+            imageInput.ColorSpace = ColorSpace.Gray;
+            
             fName = Path.GetFileName(path);
             fExt = fName.Split('.')[1];
             fName = fName.Split('.')[0];
@@ -74,20 +56,9 @@ namespace AppImageConsole
             string tmp = Path.GetFileName(path);
             fExt = path.Substring(0, path.Length - tmp.Length) + fName;
 
-            if (path.EndsWith(".jpg") == true)
-            {
-                imageOutput.Save(fExt, ImageFormat.Jpeg);
-            }
-            else if (path.EndsWith(".png") == true)
-            {
-                imageOutput.Save(fExt, ImageFormat.Png);
-            }
-            else if (path.EndsWith(".bmp") == true)
-            {
-                imageOutput.Save(fExt, ImageFormat.Bmp);
-            }
+            imageInput.Write(fExt);
 
-            WriteLine("Файл преобразован " + fExt);
+            WriteLine("Файл преобразован в " + fExt);
 
             ReadKey();
         }
